@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Future Designz - Attendance Management System</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* --- LOGIN OVERLAY --- */
+        #loginOverlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex; justify-content: center; align-items: center; z-index: 9999;
+        }
+        .login-box {
+            background: white; padding: 40px; border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3); text-align: center; width: 90%; max-width: 400px;
+        }
+        .login-box input { width: 100%; padding: 12px; margin: 15px 0; border: 2px solid #ddd; border-radius: 8px; }
+
+        /* --- MAIN UI --- */
+        .container { max-width: 1600px; margin: 0 auto; display: none; }
+        .header, .controls, .table-container {
+            background: white; border-radius: 20px; padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15); margin-bottom: 25px;
+        }
+
+        .header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+        .logo { width: 150px; height: auto; }
+        
+        .btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+        .btn { 
+            padding: 10px 18px; border: none; border-radius: 8px; 
+            font-weight: 600; cursor: pointer; transition: 0.3s;
+            display: flex; align-items: center; gap: 5px; color: white;
+        }
+        .btn-primary { background: #667eea; }
+        .btn-success { background: #28a745; }
+        .btn-warning { background: #ffc107; color: #333; }
+        .btn-danger { background: #dc3545; }
+        .btn-backup { background: #17a2b8; }
+
+        /* --- ENHANCED TIME UI --- */
+        .cell-content { display: flex; flex-direction: column; gap: 4px; padding: 5px; min-width: 110px; }
+        .status-select { padding: 5px; border-radius: 5px; border: 1px solid #ddd; font-weight: bold; width: 100%; }
+        .time-row { display: flex; align-items: center; justify-content: space-between; gap: 5px; }
+        .time-label { font-size: 10px; font-weight: 800; color: #555; text-transform: uppercase; width: 25px; }
+        .time-input { padding: 3px; border: 1px solid #eee; border-radius: 4px; font-size: 11px; flex: 1; }
+
+        /* --- TABLE STYLES --- */
+        .table-wrapper { overflow-x: auto; border-radius: 10px; }
+        table { width: 100%; border-collapse: collapse; background: white; }
+        th { background: #764ba2; color: white; padding: 12px; font-size: 12px; white-space: nowrap; }
+        td { border: 1px solid #f0f0f0; padding: 2px; }
+        td:first-child { 
+            position: sticky; left: 0; background: #fff; z-index: 2; 
+            font-weight: bold; min-width: 160px; padding-left: 15px; text-align: left;
+            border-right: 2px solid #764ba2;
+        }
+
+        /* --- PRINT ENHANCEMENTS --- */
+        @media print {
+            @page { size: landscape; margin: 0.5cm; }
+            body { background: white !important; padding: 0; }
+            .controls, .btn-group, #loginOverlay, .footer { display: none !important; }
+            .container { display: block !important; width: 100%; }
+            .header { margin-bottom: 10px; padding: 10px; border-bottom: 2px solid #333; }
+            .table-container { box-shadow: none; padding: 0; }
+            table { border: 1px solid #000; font-size: 10px; }
+            th { background: #eee !important; color: #000 !important; border: 1px solid #000; }
+            td { border: 1px solid #000 !important; }
+            .time-label { color: #000; }
+            select { border: none !important; appearance: none; -webkit-appearance: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loginOverlay">
+        <div class="login-box">
+            <img src="https://futuredesignz.com/wp-content/uploads/2022/12/future-designs-logo1.webp" class="logo" style="margin-bottom: 10px;">
+            <h2>Secure Access</h2>
+            <input type="password" id="passInput" placeholder="Enter System Password">
+            <button class="btn btn-primary" style="width:100%; justify-content:center;" onclick="verifyAccess()">Unlock System</button>
+        </div>
+    </div>
+
+    <div class="container" id="mainApp">
+        <div class="header">
+            <img src="https://futuredesignz.com/wp-content/uploads/2022/12/future-designs-logo1.webp" class="logo">
+            <h1 style="color: #764ba2;">Attendance Dashboard</h1>
+            <div style="text-align: right;">
+                <p><strong>Admin:</strong> Hamza Chaudhery</p>
+                <p id="currentDateDisplay" style="font-size: 12px; color: #666;"></p>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div style="display:flex; gap:10px;">
+                <select id="monthSelect" style="padding: 10px; border-radius: 8px;"></select>
+                <select id="yearSelect" style="padding: 10px; border-radius: 8px;"></select>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-primary" onclick="markAllPresent()">✅ All Present</button>
+                <button class="btn btn-backup" onclick="exportBackup()">💾 Backup (JSON)</button>
+                <button class="btn btn-backup" onclick="document.getElementById('importFile').click()">📂 Restore</button>
+                <input type="file" id="importFile" style="display:none" accept=".json" onchange="importBackup(event)">
+                <button class="btn btn-success" onclick="exportCSV()">📊 Export CSV</button>
+                <button class="btn btn-warning" onclick="window.print()">🖨️ Professional Print</button>
+                <button class="btn btn-danger" onclick="resetTable()">🗑️ Reset</button>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <div class="table-wrapper">
+                <table id="attendanceTable">
+                    <thead><tr id="headerRow"></tr></thead>
+                    <tbody id="bodyRows"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const employees = ['Shehroz Sab', 'Uzair Sab', 'Ehsan', 'Waseem Sab', 'Faran Miss', 'Zunaira Miss', 'Sameer', 'Kabeer', 'Adnan Mughal', 'Waris Ali', 'Faroq Sab', 'Haroon Sab', 'Ahmad Cleaner', 'Ameer Hamza', 'Khalil Office boy'];
+        
+        function verifyAccess() {
+            if(document.getElementById('passInput').value === 'fd.7878') {
+                document.getElementById('loginOverlay').style.display = 'none';
+                document.getElementById('mainApp').style.display = 'block';
+                setupSystem();
+            } else { alert("Access Denied: Incorrect Password"); }
+        }
+
+        function setupSystem() {
+            const mSelect = document.getElementById('monthSelect');
+            const ySelect = document.getElementById('yearSelect');
+            const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+            
+            months.forEach((m, i) => mSelect.add(new Option(m, i)));
+            for(let y = 2024; y <= 2027; y++) ySelect.add(new Option(y, y));
+
+            const now = new Date();
+            mSelect.value = now.getMonth();
+            ySelect.value = now.getFullYear();
+            
+            mSelect.onchange = ySelect.onchange = buildTable;
+            buildTable();
+        }
+
+        function buildTable() {
+            const month = parseInt(document.getElementById('monthSelect').value);
+            const year = parseInt(document.getElementById('yearSelect').value);
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            
+            const header = document.getElementById('headerRow');
+            header.innerHTML = '<th>Employee Name</th>' + Array.from({length: daysInMonth}, (_, i) => `<th>Day ${i+1}</th>`).join('') + '<th>P</th><th>A</th>';
+            
+            const body = document.getElementById('bodyRows');
+            body.innerHTML = employees.map((name, idx) => `
+                <tr>
+                    <td>${name}</td>
+                    ${Array.from({length: daysInMonth}, () => `
+                        <td>
+                            <div class="cell-content">
+                                <select class="status-select" onchange="colorCell(this)">
+                                    <option value="">-</option>
+                                    <option value="P">P</option>
+                                    <option value="A">A</option>
+                                    <option value="L">L</option>
+                                </select>
+                                <div class="time-row"><span class="time-label">In</span><input type="time" class="time-input in-t"></div>
+                                <div class="time-row"><span class="time-label">Out</span><input type="time" class="time-input out-t"></div>
+                            </div>
+                        </td>
+                    `).join('')}
+                    <td style="font-weight:bold; color:green" id="pCount-${idx}">0</td>
+                    <td style="font-weight:bold; color:red" id="aCount-${idx}">0</td>
+                </tr>
+            `).join('');
+        }
+
+        function colorCell(sel) {
+            const colors = { 'P': '#d4edda', 'A': '#f8d7da', 'L': '#fff3cd' };
+            sel.style.backgroundColor = colors[sel.value] || 'white';
+        }
+
+        // --- BACKUP & RESTORE ---
+        function exportBackup() {
+            const rows = document.querySelectorAll('#bodyRows tr');
+            const backup = Array.from(rows).map((row, i) => ({
+                employee: employees[i],
+                records: Array.from(row.querySelectorAll('.cell-content')).map(cell => ({
+                    status: cell.querySelector('select').value,
+                    in: cell.querySelector('.in-t').value,
+                    out: cell.querySelector('.out-t').value
+                }))
+            }));
+            
+            const blob = new Blob([JSON.stringify(backup)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `FD_Backup_${document.getElementById('monthSelect').value}_${document.getElementById('yearSelect').value}.json`;
+            a.click();
+        }
+
+        function importBackup(event) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const data = JSON.parse(e.target.result);
+                buildTable();
+                const rows = document.querySelectorAll('#bodyRows tr');
+                data.forEach((empData, i) => {
+                    if(!rows[i]) return;
+                    const cells = rows[i].querySelectorAll('.cell-content');
+                    empData.records.forEach((rec, j) => {
+                        if(!cells[j]) return;
+                        const sel = cells[j].querySelector('select');
+                        sel.value = rec.status;
+                        colorCell(sel);
+                        cells[j].querySelector('.in-t').value = rec.in;
+                        cells[j].querySelector('.out-t').value = rec.out;
+                    });
+                });
+            };
+            reader.readAsText(event.target.files[0]);
+        }
+
+        function markAllPresent() {
+            document.querySelectorAll('.status-select').forEach(s => { s.value = 'P'; colorCell(s); });
+        }
+
+        function resetTable() { if(confirm("Reset entire month's data?")) buildTable(); }
+
+        function exportCSV() {
+            let csv = "Employee," + Array.from({length: 31}, (_, i) => `Day ${i+1}`).join(',') + "\n";
+            document.querySelectorAll('#bodyRows tr').forEach((row, i) => {
+                csv += employees[i] + "," + Array.from(row.querySelectorAll('.status-select')).map(s => s.value || "-").join(',') + "\n";
+            });
+            const blob = new Blob([csv], {type: 'text/csv'});
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = "Attendance_Summary.csv";
+            a.click();
+        }
+    </script>
+</body>
+</html>

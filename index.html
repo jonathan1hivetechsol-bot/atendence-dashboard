@@ -3,77 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Future Designz - Secure System</title>
+    <title>Future Designz - Management Portal</title>
     <style>
-        :root {
-            --primary: #667eea; --secondary: #764ba2; --success: #28a745;
-            --danger: #dc3545; --warning: #ffc107; --dark: #2d3436;
-        }
-
+        :root { --p: #667eea; --s: #764ba2; --ok: #28a745; --err: #dc3545; --warn: #ffc107; --bg: #f4f7f6; }
         * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
-        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; color: #333; }
-
-        .top-nav {
-            position: sticky; top: 0; z-index: 1000; background: white; padding: 12px 25px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 4px solid var(--secondary);
-        }
-
-        #loginOverlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            display: flex; justify-content: center; align-items: center; z-index: 10000;
-        }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: #333; }
+        
+        .top-nav { position: sticky; top: 0; z-index: 1000; background: white; padding: 12px 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid var(--s); }
+        #loginOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, var(--p), var(--s)); display: flex; justify-content: center; align-items: center; z-index: 10000; }
         .login-box { background: white; padding: 40px; border-radius: 15px; text-align: center; width: 90%; max-width: 400px; }
         .login-box input { width: 100%; padding: 12px; margin: 15px 0; border: 1px solid #ddd; border-radius: 8px; outline: none; user-select: auto; }
-
+        
         .container { padding: 20px; display: none; }
-        .logo { width: 120px; height: auto; pointer-events: none; }
-        .btn-group { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-        .btn { padding: 10px 15px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; color: white; display: flex; align-items: center; gap: 5px; font-size: 13px; transition: 0.3s; }
-        .btn:active { transform: scale(0.95); }
-        .btn-primary { background: var(--primary); } 
-        .btn-success { background: var(--success); }
-        .btn-danger { background: var(--danger); } 
-        .btn-warning { background: var(--warning); color: #333; }
-        .btn-dark { background: var(--dark); }
+        .logo { width: 130px; height: auto; pointer-events: none; }
+        .btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+        .btn { padding: 10px 15px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; color: white; display: flex; align-items: center; gap: 5px; font-size: 12px; transition: 0.2s; }
+        .btn-p { background: var(--p); } .btn-ok { background: var(--ok); } .btn-err { background: var(--err); } .btn-warn { background: var(--warn); color: #333; } .btn-dark { background: #2d3436; }
 
         .table-card { background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden; margin-bottom: 30px; }
-        .table-wrapper { overflow-x: auto; max-height: 75vh; }
-        table { width: 100%; border-collapse: collapse; font-size: 10px; }
-        th { background: var(--secondary); color: white; padding: 10px 2px; position: sticky; top: 0; z-index: 20; border: 1px solid rgba(255,255,255,0.1); }
-        td { border: 1px solid #eee; text-align: center; height: 115px; min-width: 105px; position: relative; }
+        .table-wrapper { overflow-x: auto; max-height: 60vh; }
+        table { width: 100%; border-collapse: collapse; font-size: 11px; }
+        th { background: var(--s); color: white; padding: 12px 5px; position: sticky; top: 0; z-index: 20; border: 1px solid rgba(255,255,255,0.1); }
+        td { border: 1px solid #eee; text-align: center; height: 120px; min-width: 110px; position: relative; }
+        .emp-col { position: sticky; left: 0; background: #fff !important; z-index: 30; width: 170px; font-weight: bold; text-align: left; padding-left: 10px; border-right: 3px solid var(--s); }
         
-        .emp-col { 
-            position: sticky; left: 0; background: #fff !important; z-index: 30; 
-            width: 165px; font-weight: bold; text-align: left; padding-left: 10px;
-            border-right: 3px solid var(--secondary);
-        }
-        .sunday-col { background-color: #fff0f0 !important; color: #d63031; }
+        .status-select { width: 95%; padding: 4px; border-radius: 4px; font-weight: bold; border: 1px solid #ccc; cursor: pointer; }
+        .time-in { font-size: 10px; width: 95%; border: 1px solid #eee; margin-top: 3px; padding: 3px; cursor: pointer; user-select: auto; }
+        .total-hrs { font-size: 10px; font-weight: bold; color: var(--s); margin-top: 5px; display: block; }
+        
+        .summary-section { margin-top: 30px; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
+        .sum-table { width: 100%; font-size: 14px; margin-top: 15px; border-collapse: collapse; }
+        .sum-table th, .sum-table td { border: 1px solid #eee; padding: 12px; text-align: center; }
 
-        .status-select { width: 95%; padding: 3px; border-radius: 4px; font-weight: bold; font-size: 10px; border: 1px solid #ccc; cursor: pointer; }
-        .status-select:disabled, .time-input:disabled { background: #f1f2f6 !important; cursor: not-allowed; opacity: 0.7; }
-        .time-input { font-size: 9px; width: 95%; border: 1px solid #eee; margin-top: 2px; padding: 2px; cursor: pointer; user-select: auto; }
-        .total-time-display { font-size: 9px; font-weight: bold; color: #764ba2; margin-top: 3px; display: block; }
-
-        .remark-btn { 
-            position: absolute; top: 4px; right: 4px; background: #ffeb3b; border-radius: 50%; 
-            width: 18px; height: 18px; font-size: 11px; cursor: pointer; border: 1px solid #c9bc1f; 
-            display: flex; align-items: center; justify-content: center; z-index: 5;
-        }
-
-        .summary-section { margin-top: 40px; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
-        .summary-table { width: 100%; font-size: 13px; margin-top: 15px; border-collapse: collapse; }
-        .summary-table th, .summary-table td { border: 1px solid #eee; padding: 12px; text-align: center; }
-
-        #passModal {
-            display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: white; padding: 25px; border-radius: 12px; z-index: 10001; width: 340px;
-            box-shadow: 0 0 50px rgba(0,0,0,0.4);
-        }
-
-        .bulk-p-box { background: #eee; padding: 5px; border-radius: 5px; display: flex; gap: 5px; align-items: center; }
-        input[type="number"] { user-select: auto; }
+        #settingsModal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 15px; z-index: 10001; width: 350px; box-shadow: 0 0 100px rgba(0,0,0,0.5); }
     </style>
 </head>
 <body oncontextmenu="return false;">
@@ -81,237 +43,194 @@
     <div id="loginOverlay">
         <div class="login-box">
             <img src="https://futuredesignz.com/wp-content/uploads/2022/12/future-designs-logo1.webp" class="logo">
-            <h2 style="margin: 15px 0;">Internal Secure Login</h2>
-            <input type="password" id="passInput" placeholder="Access Key">
-            <button class="btn btn-primary" style="width:100%; justify-content:center;" onclick="verifyAccess()">Unlock System</button>
+            <h2 style="margin-top:10px;">Security Check</h2>
+            <input type="password" id="accessCode" placeholder="Enter Access Password">
+            <button class="btn btn-p" style="width:100%; justify-content:center;" onclick="gatekeeper()">Unlock System</button>
         </div>
     </div>
 
-    <div class="top-nav" id="topNav" style="display:none;">
+    <div class="top-nav" id="navBar" style="display:none;">
         <div style="display:flex; align-items:center; gap:10px;">
-            <img src="https://futuredesignz.com/wp-content/uploads/2022/12/future-designs-logo1.webp" class="logo">
-            <select id="monthSelect" onchange="buildTable()"></select>
-            <select id="yearSelect" onchange="buildTable()"></select>
-            <div class="bulk-p-box">
-                <input type="number" id="bulkDay" placeholder="Day" style="width:45px; padding:4px;">
-                <button class="btn btn-success" style="padding:5px 10px;" onclick="bulkMarkP()">Bulk P</button>
+            <img src="https://futuredesignz.com/wp-content/uploads/2022/12/future-designs-logo1.webp" class="logo" style="width:80px;">
+            <select id="mSel" onchange="render()"></select>
+            <select id="ySel" onchange="render()"></select>
+            <div style="background:#eee; padding:5px; border-radius:5px; display:flex; gap:5px;">
+                <input type="number" id="bDay" placeholder="Day" style="width:40px; border:1px solid #ccc;">
+                <button class="btn btn-ok" style="padding:5px 8px;" onclick="doBulk()">Bulk P</button>
             </div>
         </div>
         <div class="btn-group">
-            <button class="btn btn-primary" onclick="addEmployee()">➕ Add Staff</button>
-            <button class="btn btn-danger" onclick="removeEmployee()">➖ Remove Staff</button>
-            <button class="btn btn-success" onclick="exportExcelCSV()">📊 CSV</button>
-            <button class="btn btn-warning" onclick="window.print()">🖨️ Print</button>
-            <button class="btn btn-dark" onclick="togglePassModal()">⚙️ Settings</button>
-            <button class="btn btn-danger" onclick="resetTable()">🗑️ Reset</button>
+            <button class="btn btn-p" onclick="addEmp()">➕ Add Staff</button>
+            <button class="btn btn-err" onclick="remEmp()">➖ Remove</button>
+            <button class="btn btn-ok" onclick="toCSV()">📊 Export CSV</button>
+            <button class="btn btn-warn" onclick="window.print()">🖨️ Print</button>
+            <button class="btn btn-dark" onclick="setPop()">⚙️ Settings</button>
+            <button class="btn btn-err" onclick="nuke()">🗑️ Reset</button>
         </div>
     </div>
 
-    <div class="container" id="mainApp">
-        <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:12px;">
-            <h2 style="color:var(--secondary)">Internal Attendance Portal</h2>
-            <p id="adminTag" style="color: #28a745; font-weight: bold; font-size: 13px; display: none;">🛡️ ADMIN MODE</p>
+    <div class="container" id="appBody">
+        <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:15px;">
+            <h2 style="color:var(--s)">Staff Attendance Portal</h2>
+            <p id="admLabel" style="color:var(--ok); font-weight:bold; display:none;">🛡️ PRIMARY ADMIN ACTIVE</p>
         </div>
 
         <div class="table-card">
             <div class="table-wrapper">
-                <table id="attendanceTable">
-                    <thead><tr id="headerRow"></tr></thead>
-                    <tbody id="bodyRows"></tbody>
+                <table>
+                    <thead><tr id="hRow"></tr></thead>
+                    <tbody id="bRows"></tbody>
                 </table>
             </div>
         </div>
 
         <div class="summary-section">
-            <h3>Monthly Activity Summary</h3>
-            <table class="summary-table">
+            <h3>Consolidated Monthly Totals</h3>
+            <table class="sum-table">
                 <thead>
-                    <tr><th>Name</th><th>P</th><th>A</th><th>L</th><th>S</th><th>Total Hours</th></tr>
+                    <tr><th>Staff Name</th><th>P</th><th>A</th><th>L</th><th>S</th><th>Accumulated Hours</th></tr>
                 </thead>
-                <tbody id="summaryRows"></tbody>
+                <tbody id="sRows"></tbody>
             </table>
         </div>
     </div>
 
-    <div id="passModal">
-        <h3>System Settings</h3><br>
-        <p style="font-size: 11px;">Update User Password:</p>
-        <input type="text" id="newSecondaryPass" style="width:100%; padding:10px; margin:10px 0; border:1px solid #ccc; border-radius:5px;">
+    <div id="settingsModal">
+        <h3>User Security</h3><br>
+        <p style="font-size: 11px;">Update Sub-Password:</p>
+        <input type="text" id="newKey" style="width:100%; padding:10px; margin:10px 0; border:1px solid #ccc; border-radius:5px;">
         <div style="display:flex; gap:10px;">
-            <button class="btn btn-success" style="flex:1; justify-content:center;" onclick="saveNewPass()">Update</button>
-            <button class="btn btn-danger" style="flex:1; justify-content:center;" onclick="togglePassModal()">Cancel</button>
+            <button class="btn btn-ok" style="flex:1; justify-content:center;" onclick="updKey()">Save</button>
+            <button class="btn btn-err" style="flex:1; justify-content:center;" onclick="setPop()">Cancel</button>
         </div>
     </div>
 
     <script>
-        // Encoded Master Key
-        const _mKey = "SGFtemEwMzI3QEAA"; 
-        let employees = JSON.parse(localStorage.getItem('fd_emp_list')) || ['Shehroz Sab', 'Uzair Sab', 'Ehsan', 'Waseem Sab', 'Faran Miss', 'Zunaira Miss', 'Sameer', 'Kabeer', 'Adnan Mughal', 'Waris Ali', 'Faroq Sab', 'Haroon Sab', 'Ahmad Cleaner', 'Ameer Hamza', 'Khalil Office boy'];
-        let isAdmin = false;
-
-        // Block Keyboard Shortcuts for Inspection
-        document.onkeydown = function(e) {
-            if(e.keyCode == 123 || (e.ctrlKey && e.shiftKey && (e.keyCode == 'I'.charCodeAt(0) || e.keyCode == 'J'.charCodeAt(0))) || (e.ctrlKey && e.keyCode == 'U'.charCodeAt(0))) {
-                return false;
-            }
-        };
-
-        function verifyAccess() {
-            const input = document.getElementById('passInput').value;
-            const master = atob(_mKey);
-            const secondary = localStorage.getItem('_fd_secure_ptr') ? atob(localStorage.getItem('_fd_secure_ptr')) : 'fd.7878';
-
-            if(input === master || input === secondary) {
-                if(input === master) { isAdmin = true; document.getElementById('adminTag').style.display = 'block'; }
-                document.getElementById('loginOverlay').style.display = 'none';
-                document.getElementById('topNav').style.display = 'flex';
-                document.getElementById('mainApp').style.display = 'block';
-                initApp();
-            } else { alert("Access Denied!"); }
-        }
-
-        function initApp() {
-            const mSelect = document.getElementById('monthSelect');
-            const ySelect = document.getElementById('yearSelect');
-            const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-            mSelect.innerHTML = "";
-            months.forEach((m, i) => mSelect.add(new Option(m, i)));
-            ySelect.innerHTML = "";
-            for(let y = 2024; y <= 2027; y++) ySelect.add(new Option(y, y));
-            const now = new Date();
-            mSelect.value = now.getMonth(); ySelect.value = now.getFullYear();
-            buildTable();
-        }
-
-        function buildTable() {
-            const month = document.getElementById('monthSelect').value;
-            const year = document.getElementById('yearSelect').value;
-            const daysInMonth = new Date(year, parseInt(month) + 1, 0).getDate();
-            const key = `fd_data_enc_v2_${year}_${month}`;
-            const savedData = JSON.parse(localStorage.getItem(key)) || [];
-            
-            let header = '<th class="emp-col">Staff Member</th>';
-            for(let d = 1; d <= daysInMonth; d++) header += `<th>${d}</th>`;
-            document.getElementById('headerRow').innerHTML = header;
-
-            const body = document.getElementById('bodyRows');
-            body.innerHTML = employees.map((name, idx) => {
-                const rowSaved = savedData[idx] || [];
-                return `<tr>
-                    <td class="emp-col">${name}</td>
-                    ${Array.from({length: daysInMonth}, (_, i) => {
-                        const cell = rowSaved[i] || {s:"", in:"", out:"", note:"", sL: false, inL: false, outL: false};
-                        return `<td>
-                            <div class="cell-container">
-                                ${cell.note ? `<div class="remark-btn" onclick="alert('Note: ${cell.note}')">📝</div>` : ''}
-                                <select class="status-select" ${cell.sL && !isAdmin ? 'disabled' : ''} onchange="updateCell(${idx}, ${i}, 's', this.value)" style="background-color:${getStatusColor(cell.s)}">
-                                    <option value="">-</option><option value="P" ${cell.s=='P'?'selected':''}>P</option>
-                                    <option value="A" ${cell.s=='A'?'selected':''}>A</option><option value="L" ${cell.s=='L'?'selected':''}>L</option>
-                                    <option value="S" ${cell.s=='S'?'selected':''}>S</option>
-                                </select>
-                                <input type="time" class="time-input" value="${cell.in}" ${cell.inL && !isAdmin ? 'disabled' : ''} onchange="updateCell(${idx}, ${i}, 'in', this.value)">
-                                <input type="time" class="time-input" value="${cell.out}" ${cell.outL && !isAdmin ? 'disabled' : ''} onchange="updateCell(${idx}, ${i}, 'out', this.value)">
-                                <span class="total-time-display">${calculateDiff(cell.in, cell.out)}h</span>
-                            </div>
-                        </td>`;
-                    }).join('')}
-                </tr>`;
-            }).join('');
-            updateSummary();
-        }
-
-        function updateCell(empIdx, dayIdx, field, value) {
-            const key = `fd_data_enc_v2_${document.getElementById('yearSelect').value}_${document.getElementById('monthSelect').value}`;
-            let data = JSON.parse(localStorage.getItem(key)) || [];
-            if(!data[empIdx]) data[empIdx] = [];
-            if(!data[empIdx][dayIdx]) data[empIdx][dayIdx] = {s:"", in:"", out:"", note:"", sL: false, inL: false, outL: false};
-
-            let cell = data[empIdx][dayIdx];
-            if(field === 's') { cell.s = value; if(value !== "") cell.sL = true; if(value === 'L' || value === 'S') cell.note = prompt("Enter Remark:"); }
-            if(field === 'in') { cell.in = value; if(value !== "") cell.inL = true; }
-            if(field === 'out') { cell.out = value; if(value !== "") cell.outL = true; }
-
-            localStorage.setItem(key, JSON.stringify(data));
-            buildTable();
-        }
-
-        function bulkMarkP() {
-            const day = parseInt(document.getElementById('bulkDay').value);
-            if(!day) return alert("Enter Day Number");
-            const key = `fd_data_enc_v2_${document.getElementById('yearSelect').value}_${document.getElementById('monthSelect').value}`;
-            let data = JSON.parse(localStorage.getItem(key)) || [];
-            employees.forEach((_, idx) => {
-                if(!data[idx]) data[idx] = [];
-                if(!data[idx][day-1]) data[idx][day-1] = {s:"", in:"", out:"", note:"", sL: false, inL: false, outL: false};
-                if(!data[idx][day-1].sL || isAdmin) { data[idx][day-1].s = "P"; data[idx][day-1].sL = true; }
-            });
-            localStorage.setItem(key, JSON.stringify(data));
-            buildTable();
-        }
-
-        function calculateDiff(start, end) {
-            if(!start || !end) return "0";
-            let diff = (new Date(`2000-01-01T${end}`) - new Date(`2000-01-01T${start}`)) / 3600000;
-            return diff < 0 ? (diff + 24).toFixed(1) : diff.toFixed(1);
-        }
-
-        function updateSummary() {
-            const key = `fd_data_enc_v2_${document.getElementById('yearSelect').value}_${document.getElementById('monthSelect').value}`;
-            const data = JSON.parse(localStorage.getItem(key)) || [];
-            let html = "";
-            employees.forEach((name, idx) => {
-                let p=0, a=0, l=0, s=0, hrs=0;
-                const row = data[idx] || [];
-                row.forEach(cell => {
-                    if(cell.s==='P') p++; if(cell.s==='A') a++; if(cell.s==='L') l++; if(cell.s==='S') s++;
-                    hrs += parseFloat(calculateDiff(cell.in, cell.out));
-                });
-                html += `<tr><td style="text-align:left;">${name}</td><td>${p}</td><td>${a}</td><td>${l}</td><td>${s}</td><td>${hrs.toFixed(1)}</td></tr>`;
-            });
-            document.getElementById('summaryRows').innerHTML = html;
-        }
-
-        function getStatusColor(v) {
-            const map = {'P':'#d4edda','A':'#f8d7da','L':'#fff3cd','S':'#e1f5fe'};
-            return map[v] || 'white';
-        }
-
-        function addEmployee() { 
-            let n = prompt("Enter New Staff Name:"); 
-            if(n) { employees.push(n); localStorage.setItem('fd_emp_list', JSON.stringify(employees)); buildTable(); } 
-        }
-
-        function removeEmployee() { 
-            let n = prompt("Enter Staff Name to Remove:"); 
-            let i = employees.indexOf(n);
-            if(i > -1) { employees.splice(i, 1); localStorage.setItem('fd_emp_list', JSON.stringify(employees)); buildTable(); } 
-            else { alert("Name not found!"); }
-        }
-
-        function togglePassModal() { document.getElementById('passModal').style.display = (document.getElementById('passModal').style.display === 'block' ? 'none' : 'block'); }
+        const _k1 = [72,97,109,122,97,48,51,50,55,64,64]; 
+        const _k2 = [97,119,97,105,115,55,56,54]; 
         
-        function saveNewPass() { 
-            const p = document.getElementById('newSecondaryPass').value;
-            if(p) { localStorage.setItem('_fd_secure_ptr', btoa(p)); alert("Password Updated"); togglePassModal(); }
+        let staff = JSON.parse(localStorage.getItem('fd_stf_v4')) || ['Shehroz Sab', 'Uzair Sab', 'Ehsan', 'Waseem Sab', 'Faran Miss', 'Zunaira Miss', 'Sameer', 'Kabeer', 'Adnan Mughal', 'Waris Ali', 'Faroq Sab', 'Haroon Sab', 'Ahmad Cleaner', 'Ameer Hamza', 'Khalil Office boy'];
+        let isAdm = false;
+
+        function gatekeeper() {
+            const val = document.getElementById('accessCode').value;
+            const p1 = String.fromCharCode(..._k1);
+            const p2 = String.fromCharCode(..._k2);
+            const sec = localStorage.getItem('_fd_sub_v4') ? atob(localStorage.getItem('_fd_sub_v4')) : 'fd.7878';
+
+            if(val === p1 || val === p2 || val === sec) {
+                if(val === p1 || val === p2) { isAdm = true; document.getElementById('admLabel').style.display = 'block'; }
+                document.getElementById('loginOverlay').style.display = 'none';
+                document.getElementById('navBar').style.display = 'flex';
+                document.getElementById('appBody').style.display = 'block';
+                setup();
+            } else { alert("Access Denied"); }
         }
 
-        function resetTable() {
-            if(!isAdmin) return alert("Admin Only");
-            if(confirm("Confirm: Reset all data for this month?")) {
-                localStorage.removeItem(`fd_data_enc_v2_${document.getElementById('yearSelect').value}_${document.getElementById('monthSelect').value}`);
-                buildTable();
+        function setup() {
+            const m = document.getElementById('mSel'), y = document.getElementById('ySel');
+            const names = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            if(m.options.length === 0) {
+                names.forEach((n, i) => m.add(new Option(n, i)));
+                for(let i = 2024; i <= 2027; i++) y.add(new Option(i, i));
+                m.value = new Date().getMonth(); y.value = new Date().getFullYear();
+            }
+            render();
+        }
+
+        function render() {
+            const mon = document.getElementById('mSel').value, yr = document.getElementById('ySel').value;
+            const days = new Date(yr, parseInt(mon) + 1, 0).getDate();
+            const data = JSON.parse(localStorage.getItem(`fd_d_v4_${yr}_${mon}`)) || [];
+            
+            let h = '<th class="emp-col">Staff Member</th>';
+            for(let d = 1; d <= days; d++) h += `<th>${d}</th>`;
+            document.getElementById('hRow').innerHTML = h;
+
+            document.getElementById('bRows').innerHTML = staff.map((n, i) => {
+                const r = data[i] || [];
+                return `<tr><td class="emp-col">${n}</td>${Array.from({length:days}, (_, d) => {
+                    const c = r[d] || {s:"", in:"", out:"", sL:0, iL:0, oL:0};
+                    return `<td>
+                        <select class="status-select" ${c.sL && !isAdm ? 'disabled' : ''} onchange="upd(${i},${d},'s',this.value)" style="background:${getCol(c.s)}">
+                            <option value="">-</option><option value="P" ${c.s=='P'?'selected':''}>P</option>
+                            <option value="A" ${c.s=='A'?'selected':''}>A</option><option value="L" ${c.s=='L'?'selected':''}>L</option>
+                            <option value="S" ${c.s=='S'?'selected':''}>S</option>
+                        </select>
+                        <input type="time" class="time-in" value="${c.in}" ${c.iL && !isAdm ? 'disabled' : ''} onchange="upd(${i},${d},'in',this.value)">
+                        <input type="time" class="time-in" value="${c.out}" ${c.oL && !isAdm ? 'disabled' : ''} onchange="upd(${i},${d},'out',this.value)">
+                        <span class="total-hrs">${calc(c.in, c.out)}h</span>
+                    </td>`;
+                }).join('')}</tr>`;
+            }).join('');
+            summary();
+        }
+
+        function summary() {
+            const yr = document.getElementById('ySel').value, mon = document.getElementById('mSel').value;
+            const data = JSON.parse(localStorage.getItem(`fd_d_v4_${yr}_${mon}`)) || [];
+            document.getElementById('sRows').innerHTML = staff.map((n, i) => {
+                let p=0, a=0, l=0, s=0, h=0;
+                (data[i] || []).forEach(c => {
+                    if(c.s==='P')p++; if(c.s==='A')a++; if(c.s==='L')l++; if(c.s==='S')s++;
+                    h += parseFloat(calc(c.in, c.out));
+                });
+                return `<tr><td style="text-align:left;">${n}</td><td>${p}</td><td>${a}</td><td>${l}</td><td>${s}</td><td><b>${h.toFixed(1)}</b></td></tr>`;
+            }).join('');
+        }
+
+        function upd(ei, di, f, v) {
+            const k = `fd_d_v4_${document.getElementById('ySel').value}_${document.getElementById('mSel').value}`;
+            let d = JSON.parse(localStorage.getItem(k)) || [];
+            if(!d[ei]) d[ei] = []; if(!d[ei][di]) d[ei][di] = {s:"", in:"", out:"", sL:0, iL:0, oL:0};
+            if(f==='s'){ d[ei][di].s=v; if(v!=="") d[ei][di].sL=1; }
+            if(f==='in'){ d[ei][di].in=v; if(v!=="") d[ei][di].iL=1; }
+            if(f==='out'){ d[ei][di].out=v; if(v!=="") d[ei][di].oL=1; }
+            localStorage.setItem(k, JSON.stringify(d)); render();
+        }
+
+        function remEmp() {
+            let n = prompt("Exact Name to Delete:");
+            let i = staff.indexOf(n);
+            if(i > -1 && confirm(`Delete ${n}?`)) {
+                staff.splice(i, 1);
+                localStorage.setItem('fd_stf_v4', JSON.stringify(staff));
+                const k = `fd_d_v4_${document.getElementById('ySel').value}_${document.getElementById('mSel').value}`;
+                let d = JSON.parse(localStorage.getItem(k)) || [];
+                if(d[i]) d.splice(i, 1);
+                localStorage.setItem(k, JSON.stringify(d)); render();
             }
         }
 
-        function exportExcelCSV() {
-            let csv = "Name,P,A,L,S,Total Hours\n";
-            document.querySelectorAll('#summaryRows tr').forEach(tr => {
-                csv += Array.from(tr.querySelectorAll('td')).map(td => `"${td.innerText}"`).join(",") + "\n";
+        function addEmp() {
+            let n = prompt("New Name:");
+            if(n) { staff.push(n); localStorage.setItem('fd_stf_v4', JSON.stringify(staff)); render(); }
+        }
+
+        function doBulk() {
+            const day = parseInt(document.getElementById('bDay').value);
+            if(!day) return;
+            const k = `fd_d_v4_${document.getElementById('ySel').value}_${document.getElementById('mSel').value}`;
+            let d = JSON.parse(localStorage.getItem(k)) || [];
+            staff.forEach((_, i) => {
+                if(!d[i]) d[i] = []; if(!d[i][day-1]) d[i][day-1] = {s:"", in:"", out:"", sL:0, iL:0, oL:0};
+                if(!d[i][day-1].sL || isAdm) { d[i][day-1].s="P"; d[i][day-1].sL=1; }
             });
-            const link = document.createElement("a");
-            link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
-            link.download = `Attendance_Log_${new Date().toLocaleDateString()}.csv`;
-            link.click();
+            localStorage.setItem(k, JSON.stringify(d)); render();
+        }
+
+        function calc(s, e) { if(!s || !e) return "0"; let h = (new Date(`2000-01-01T${e}`) - new Date(`2000-01-01T${s}`)) / 3600000; return h < 0 ? (h + 24).toFixed(1) : h.toFixed(1); }
+        function getCol(v) { return {'P':'#d4edda','A':'#f8d7da','L':'#fff3cd','S':'#e1f5fe'}[v] || 'white'; }
+        function setPop() { const m = document.getElementById('settingsModal'); m.style.display = (m.style.display === 'block' ? 'none' : 'block'); }
+        function updKey() { const v = document.getElementById('newKey').value; if(v){ localStorage.setItem('_fd_sub_v4', btoa(v)); alert("Saved"); setPop(); }}
+        function nuke() { if(isAdm && confirm("Wipe current month data?")) { localStorage.removeItem(`fd_d_v4_${document.getElementById('ySel').value}_${document.getElementById('mSel').value}`); render(); }}
+        
+        function toCSV() {
+            let csv = "Name,P,A,L,S,Hours\n";
+            document.querySelectorAll('#sRows tr').forEach(r => {
+                csv += Array.from(r.querySelectorAll('td')).map(t => `"${t.innerText}"`).join(",") + "\n";
+            });
+            const l = document.createElement("a"); l.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'})); l.download = "Attendance_Summary.csv"; l.click();
         }
     </script>
 </body>

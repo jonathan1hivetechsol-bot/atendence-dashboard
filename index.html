@@ -4,37 +4,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Future Designz - Management Portal</title>
+    <script src="https://www.gstatic.com/firebasejs/11.0.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.0.2/firebase-database-compat.js"></script>
+    
     <style>
         :root { --p: #667eea; --s: #764ba2; --ok: #28a745; --err: #dc3545; --warn: #ffc107; --bg: #f4f7f6; }
         * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: #333; }
-        
         .top-nav { position: sticky; top: 0; z-index: 1000; background: white; padding: 12px 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid var(--s); }
         #loginOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, var(--p), var(--s)); display: flex; justify-content: center; align-items: center; z-index: 10000; }
         .login-box { background: white; padding: 40px; border-radius: 15px; text-align: center; width: 90%; max-width: 400px; }
         .login-box input { width: 100%; padding: 12px; margin: 15px 0; border: 1px solid #ddd; border-radius: 8px; outline: none; user-select: auto; }
-        
         .container { padding: 20px; display: none; }
         .logo { width: 130px; height: auto; pointer-events: none; }
         .btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
         .btn { padding: 10px 15px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; color: white; display: flex; align-items: center; gap: 5px; font-size: 12px; transition: 0.2s; }
         .btn-p { background: var(--p); } .btn-ok { background: var(--ok); } .btn-err { background: var(--err); } .btn-warn { background: var(--warn); color: #333; } .btn-dark { background: #2d3436; }
-
         .table-card { background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden; margin-bottom: 30px; }
         .table-wrapper { overflow-x: auto; max-height: 60vh; }
         table { width: 100%; border-collapse: collapse; font-size: 11px; }
         th { background: var(--s); color: white; padding: 12px 5px; position: sticky; top: 0; z-index: 20; border: 1px solid rgba(255,255,255,0.1); }
         td { border: 1px solid #eee; text-align: center; height: 120px; min-width: 110px; position: relative; }
         .emp-col { position: sticky; left: 0; background: #fff !important; z-index: 30; width: 170px; font-weight: bold; text-align: left; padding-left: 10px; border-right: 3px solid var(--s); }
-        
         .status-select { width: 95%; padding: 4px; border-radius: 4px; font-weight: bold; border: 1px solid #ccc; cursor: pointer; }
         .time-in { font-size: 10px; width: 95%; border: 1px solid #eee; margin-top: 3px; padding: 3px; cursor: pointer; user-select: auto; }
         .total-hrs { font-size: 10px; font-weight: bold; color: var(--s); margin-top: 5px; display: block; }
-        
         .summary-section { margin-top: 30px; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
         .sum-table { width: 100%; font-size: 14px; margin-top: 15px; border-collapse: collapse; }
         .sum-table th, .sum-table td { border: 1px solid #eee; padding: 12px; text-align: center; }
-
         #settingsModal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 15px; z-index: 10001; width: 350px; box-shadow: 0 0 100px rgba(0,0,0,0.5); }
     </style>
 </head>
@@ -52,8 +49,8 @@
     <div class="top-nav" id="navBar" style="display:none;">
         <div style="display:flex; align-items:center; gap:10px;">
             <img src="https://futuredesignz.com/wp-content/uploads/2022/12/future-designs-logo1.webp" class="logo" style="width:80px;">
-            <select id="mSel" onchange="render()"></select>
-            <select id="ySel" onchange="render()"></select>
+            <select id="mSel" onchange="initSync()"></select>
+            <select id="ySel" onchange="initSync()"></select>
             <div style="background:#eee; padding:5px; border-radius:5px; display:flex; gap:5px;">
                 <input type="number" id="bDay" placeholder="Day" style="width:40px; border:1px solid #ccc;">
                 <button class="btn btn-ok" style="padding:5px 8px;" onclick="doBulk()">Bulk P</button>
@@ -74,7 +71,6 @@
             <h2 style="color:var(--s)">Staff Attendance Portal</h2>
             <p id="admLabel" style="color:var(--ok); font-weight:bold; display:none;">🛡️ PRIMARY ADMIN ACTIVE</p>
         </div>
-
         <div class="table-card">
             <div class="table-wrapper">
                 <table>
@@ -83,7 +79,6 @@
                 </table>
             </div>
         </div>
-
         <div class="summary-section">
             <h3>Consolidated Monthly Totals</h3>
             <table class="sum-table">
@@ -106,10 +101,26 @@
     </div>
 
     <script>
+        // Your Firebase Configuration Applied
+        const firebaseConfig = {
+            apiKey: "AIzaSyASeV6Zj4n7xxv2lGpyHIWU5C2eAtzkerY",
+            authDomain: "futuredesignz-d763a.firebaseapp.com",
+            databaseURL: "https://futuredesignz-d763a-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "futuredesignz-d763a",
+            storageBucket: "futuredesignz-d763a.firebasestorage.app",
+            messagingSenderId: "741011047678",
+            appId: "1:741011047678:web:71f6cc3913ef554e5551af"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
         const _k1 = [72,97,109,122,97,48,51,50,55,64,64]; 
         const _k2 = [97,119,97,105,115,55,56,54]; 
         
-        let staff = JSON.parse(localStorage.getItem('fd_stf_v4')) || ['Shehroz Sab', 'Uzair Sab', 'Ehsan', 'Waseem Sab', 'Faran Miss', 'Zunaira Miss', 'Sameer', 'Kabeer', 'Adnan Mughal', 'Waris Ali', 'Faroq Sab', 'Haroon Sab', 'Ahmad Cleaner', 'Ameer Hamza', 'Khalil Office boy'];
+        let staff = [];
+        let currentMonthData = [];
         let isAdm = false;
 
         function gatekeeper() {
@@ -135,20 +146,39 @@
                 for(let i = 2024; i <= 2027; i++) y.add(new Option(i, i));
                 m.value = new Date().getMonth(); y.value = new Date().getFullYear();
             }
-            render();
+            
+            // Sync Staff List
+            db.ref('staffList').on('value', (snap) => {
+                const cloudStaff = snap.val();
+                if(cloudStaff) {
+                    staff = cloudStaff;
+                } else {
+                    // Default list if cloud is empty
+                    staff = ['Shehroz Sab', 'Uzair Sab', 'Ehsan', 'Waseem Sab', 'Faran Miss', 'Zunaira Miss', 'Sameer', 'Kabeer', 'Adnan Mughal', 'Waris Ali', 'Faroq Sab', 'Haroon Sab', 'Ahmad Cleaner', 'Ameer Hamza', 'Khalil Office boy'];
+                    db.ref('staffList').set(staff);
+                }
+                initSync();
+            });
+        }
+
+        function initSync() {
+            const mon = document.getElementById('mSel').value, yr = document.getElementById('ySel').value;
+            db.ref(`attendance/${yr}/${mon}`).on('value', (snap) => {
+                currentMonthData = snap.val() || [];
+                render();
+            });
         }
 
         function render() {
             const mon = document.getElementById('mSel').value, yr = document.getElementById('ySel').value;
             const days = new Date(yr, parseInt(mon) + 1, 0).getDate();
-            const data = JSON.parse(localStorage.getItem(`fd_d_v4_${yr}_${mon}`)) || [];
             
             let h = '<th class="emp-col">Staff Member</th>';
             for(let d = 1; d <= days; d++) h += `<th>${d}</th>`;
             document.getElementById('hRow').innerHTML = h;
 
             document.getElementById('bRows').innerHTML = staff.map((n, i) => {
-                const r = data[i] || [];
+                const r = currentMonthData[i] || [];
                 return `<tr><td class="emp-col">${n}</td>${Array.from({length:days}, (_, d) => {
                     const c = r[d] || {s:"", in:"", out:"", sL:0, iL:0, oL:0};
                     return `<td>
@@ -157,8 +187,8 @@
                             <option value="A" ${c.s=='A'?'selected':''}>A</option><option value="L" ${c.s=='L'?'selected':''}>L</option>
                             <option value="S" ${c.s=='S'?'selected':''}>S</option>
                         </select>
-                        <input type="time" class="time-in" value="${c.in}" ${c.iL && !isAdm ? 'disabled' : ''} onchange="upd(${i},${d},'in',this.value)">
-                        <input type="time" class="time-in" value="${c.out}" ${c.oL && !isAdm ? 'disabled' : ''} onchange="upd(${i},${d},'out',this.value)">
+                        <input type="time" class="time-in" value="${c.in || ''}" ${c.iL && !isAdm ? 'disabled' : ''} onchange="upd(${i},${d},'in',this.value)">
+                        <input type="time" class="time-in" value="${c.out || ''}" ${c.oL && !isAdm ? 'disabled' : ''} onchange="upd(${i},${d},'out',this.value)">
                         <span class="total-hrs">${calc(c.in, c.out)}h</span>
                     </td>`;
                 }).join('')}</tr>`;
@@ -167,11 +197,9 @@
         }
 
         function summary() {
-            const yr = document.getElementById('ySel').value, mon = document.getElementById('mSel').value;
-            const data = JSON.parse(localStorage.getItem(`fd_d_v4_${yr}_${mon}`)) || [];
             document.getElementById('sRows').innerHTML = staff.map((n, i) => {
                 let p=0, a=0, l=0, s=0, h=0;
-                (data[i] || []).forEach(c => {
+                (currentMonthData[i] || []).forEach(c => {
                     if(c.s==='P')p++; if(c.s==='A')a++; if(c.s==='L')l++; if(c.s==='S')s++;
                     h += parseFloat(calc(c.in, c.out));
                 });
@@ -180,13 +208,11 @@
         }
 
         function upd(ei, di, f, v) {
-            const k = `fd_d_v4_${document.getElementById('ySel').value}_${document.getElementById('mSel').value}`;
-            let d = JSON.parse(localStorage.getItem(k)) || [];
-            if(!d[ei]) d[ei] = []; if(!d[ei][di]) d[ei][di] = {s:"", in:"", out:"", sL:0, iL:0, oL:0};
-            if(f==='s'){ d[ei][di].s=v; if(v!=="") d[ei][di].sL=1; }
-            if(f==='in'){ d[ei][di].in=v; if(v!=="") d[ei][di].iL=1; }
-            if(f==='out'){ d[ei][di].out=v; if(v!=="") d[ei][di].oL=1; }
-            localStorage.setItem(k, JSON.stringify(d)); render();
+            const mon = document.getElementById('mSel').value, yr = document.getElementById('ySel').value;
+            let updates = {};
+            updates[`attendance/${yr}/${mon}/${ei}/${di}/${f}`] = v;
+            if(v !== "") updates[`attendance/${yr}/${mon}/${ei}/${di}/${f}L`] = 1;
+            db.ref().update(updates);
         }
 
         function remEmp() {
@@ -194,36 +220,34 @@
             let i = staff.indexOf(n);
             if(i > -1 && confirm(`Delete ${n}?`)) {
                 staff.splice(i, 1);
-                localStorage.setItem('fd_stf_v4', JSON.stringify(staff));
-                const k = `fd_d_v4_${document.getElementById('ySel').value}_${document.getElementById('mSel').value}`;
-                let d = JSON.parse(localStorage.getItem(k)) || [];
-                if(d[i]) d.splice(i, 1);
-                localStorage.setItem(k, JSON.stringify(d)); render();
+                db.ref('staffList').set(staff);
+                db.ref(`attendance/${document.getElementById('ySel').value}/${document.getElementById('mSel').value}/${i}`).remove();
             }
         }
 
         function addEmp() {
             let n = prompt("New Name:");
-            if(n) { staff.push(n); localStorage.setItem('fd_stf_v4', JSON.stringify(staff)); render(); }
+            if(n) { staff.push(n); db.ref('staffList').set(staff); }
         }
 
         function doBulk() {
             const day = parseInt(document.getElementById('bDay').value);
             if(!day) return;
-            const k = `fd_d_v4_${document.getElementById('ySel').value}_${document.getElementById('mSel').value}`;
-            let d = JSON.parse(localStorage.getItem(k)) || [];
+            const mon = document.getElementById('mSel').value, yr = document.getElementById('ySel').value;
             staff.forEach((_, i) => {
-                if(!d[i]) d[i] = []; if(!d[i][day-1]) d[i][day-1] = {s:"", in:"", out:"", sL:0, iL:0, oL:0};
-                if(!d[i][day-1].sL || isAdm) { d[i][day-1].s="P"; d[i][day-1].sL=1; }
+                const cellRef = db.ref(`attendance/${yr}/${mon}/${i}/${day-1}`);
+                cellRef.once('value').then(snap => {
+                    const c = snap.val() || {};
+                    if(!c.sL || isAdm) cellRef.update({ s: "P", sL: 1 });
+                });
             });
-            localStorage.setItem(k, JSON.stringify(d)); render();
         }
 
         function calc(s, e) { if(!s || !e) return "0"; let h = (new Date(`2000-01-01T${e}`) - new Date(`2000-01-01T${s}`)) / 3600000; return h < 0 ? (h + 24).toFixed(1) : h.toFixed(1); }
         function getCol(v) { return {'P':'#d4edda','A':'#f8d7da','L':'#fff3cd','S':'#e1f5fe'}[v] || 'white'; }
         function setPop() { const m = document.getElementById('settingsModal'); m.style.display = (m.style.display === 'block' ? 'none' : 'block'); }
         function updKey() { const v = document.getElementById('newKey').value; if(v){ localStorage.setItem('_fd_sub_v4', btoa(v)); alert("Saved"); setPop(); }}
-        function nuke() { if(isAdm && confirm("Wipe current month data?")) { localStorage.removeItem(`fd_d_v4_${document.getElementById('ySel').value}_${document.getElementById('mSel').value}`); render(); }}
+        function nuke() { if(isAdm && confirm("Wipe current month data?")) { db.ref(`attendance/${document.getElementById('ySel').value}/${document.getElementById('mSel').value}`).remove(); }}
         
         function toCSV() {
             let csv = "Name,P,A,L,S,Hours\n";

@@ -59,7 +59,7 @@
         <div class="btn-group">
             <button class="btn btn-p" onclick="addEmp()">➕ Add Staff</button>
             <button class="btn btn-err" onclick="remEmp()">➖ Remove</button>
-            <button class="btn btn-ok" onclick="toCSV()">📊 Export Horizontal Report</button>
+            <button class="btn btn-ok" onclick="toCSV()">📊 Export Horizontal Sheet</button>
             <button class="btn btn-warn" onclick="window.print()">🖨️ Print</button>
             <button class="btn btn-dark" onclick="setPop()">⚙️ Settings</button>
             <button class="btn btn-err" onclick="nuke()">🗑️ Reset</button>
@@ -242,7 +242,9 @@
         // --- HELPERS FOR EXPORT ---
         function format12h(time) {
             if (!time || time === "" || time === "-") return "-";
-            let [h, m] = time.split(':');
+            let parts = time.split(':');
+            let h = parseInt(parts[0]);
+            let m = parts[1];
             let ampm = h >= 12 ? 'PM' : 'AM';
             h = h % 12 || 12;
             return `${h}:${m} ${ampm}`;
@@ -254,14 +256,16 @@
             const yr = document.getElementById('ySel').value;
             const daysCount = new Date(yr, parseInt(mSel.value) + 1, 0).getDate();
             
-            let csv = "FUTURE DESIGNZ - HORIZONTAL ATTENDANCE REPORT\n";
+            // "sep=," tells Excel to use comma as column separator
+            let csv = "sep=,\n";
+            csv += "FUTURE DESIGNZ - ATTENDANCE REPORT\n";
             csv += `Month: ${monText} ${yr}\n\n`;
             
             // Header Row 1: Dates
             let h1 = "Staff Name,";
             let h2 = ",";
             for (let d = 1; d <= daysCount; d++) {
-                h1 += `Day ${d},,`;
+                h1 += `Day ${d},,`; // Two columns per day
                 h2 += "In,Out,";
             }
             h1 += "Total Hours\n";
@@ -269,7 +273,7 @@
             csv += h1 + h2;
 
             staff.forEach((name, sIdx) => {
-                let row = `"${name}",`;
+                let row = `"${name.replace(/"/g, '""')}",`;
                 let monthlyTotalHrs = 0;
                 const staffData = currentMonthData[sIdx] || [];
 
@@ -281,8 +285,9 @@
                     let tIn = format12h(dayData.in);
                     let tOut = format12h(dayData.out);
                     
+                    // If not Present, show status in both In/Out cells for clarity
                     if (dayData.s && dayData.s !== 'P') {
-                        row += `${dayData.s},${dayData.s},`;
+                        row += `"${dayData.s}","${dayData.s}",`;
                     } else {
                         row += `"${tIn}","${tOut}",`;
                     }
@@ -291,10 +296,11 @@
                 csv += row;
             });
 
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            // Using Blob with UTF-8 BOM for Urdu/Special character support
+            const blob = new Blob(["\ufeff" + csv], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
-            link.download = `Horizontal_Attendance_${monText}_${yr}.csv`;
+            link.download = `Attendance_Sheet_${monText}_${yr}.csv`;
             link.click();
         }
     </script>

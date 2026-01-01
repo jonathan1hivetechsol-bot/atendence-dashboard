@@ -59,7 +59,7 @@
         <div class="btn-group">
             <button class="btn btn-p" onclick="addEmp()">➕ Add Staff</button>
             <button class="btn btn-err" onclick="remEmp()">➖ Remove</button>
-            <button class="btn btn-ok" onclick="toCSV()">📊 Export Full Report</button>
+            <button class="btn btn-ok" onclick="toCSV()">📊 Export Horizontal Report</button>
             <button class="btn btn-warn" onclick="window.print()">🖨️ Print</button>
             <button class="btn btn-dark" onclick="setPop()">⚙️ Settings</button>
             <button class="btn btn-err" onclick="nuke()">🗑️ Reset</button>
@@ -239,39 +239,62 @@
         function updKey() { const v = document.getElementById('newKey').value; if(v){ localStorage.setItem('_fd_sub_v4', btoa(v)); alert("Saved"); setPop(); }}
         function nuke() { if(isAdm && confirm("Wipe current month data?")) { db.ref(`attendance/${document.getElementById('ySel').value}/${document.getElementById('mSel').value}`).remove(); }}
         
-        // --- NEW PROFESSIONAL EXPORT SYSTEM ---
+        // --- HELPERS FOR EXPORT ---
+        function format12h(time) {
+            if (!time || time === "" || time === "-") return "-";
+            let [h, m] = time.split(':');
+            let ampm = h >= 12 ? 'PM' : 'AM';
+            h = h % 12 || 12;
+            return `${h}:${m} ${ampm}`;
+        }
+
         function toCSV() {
             const mSel = document.getElementById('mSel');
             const monText = mSel.options[mSel.selectedIndex].text;
             const yr = document.getElementById('ySel').value;
             const daysCount = new Date(yr, parseInt(mSel.value) + 1, 0).getDate();
             
-            let csv = "FUTURE DESIGNZ - ATTENDANCE REPORT\n";
+            let csv = "FUTURE DESIGNZ - HORIZONTAL ATTENDANCE REPORT\n";
             csv += `Month: ${monText} ${yr}\n\n`;
             
-            // CSV Columns Header
-            csv += "Staff Name,Date,Status,Time In,Time Out,Daily Hours\n";
+            // Header Row 1: Dates
+            let h1 = "Staff Name,";
+            let h2 = ",";
+            for (let d = 1; d <= daysCount; d++) {
+                h1 += `Day ${d},,`;
+                h2 += "In,Out,";
+            }
+            h1 += "Total Hours\n";
+            h2 += "\n";
+            csv += h1 + h2;
 
             staff.forEach((name, sIdx) => {
-                const staffData = currentMonthData[sIdx] || [];
+                let row = `"${name}",`;
                 let monthlyTotalHrs = 0;
+                const staffData = currentMonthData[sIdx] || [];
 
                 for (let d = 0; d < daysCount; d++) {
-                    const dayData = staffData[d] || { s: "-", in: "-", out: "-" };
+                    const dayData = staffData[d] || { s: "", in: "", out: "" };
                     const hrs = calc(dayData.in, dayData.out);
                     monthlyTotalHrs += parseFloat(hrs);
 
-                    // Har din ki row
-                    csv += `"${name}","Day ${d + 1}","${dayData.s || "-"}","${dayData.in || "-"}","${dayData.out || "-"}","${hrs}"\n`;
+                    let tIn = format12h(dayData.in);
+                    let tOut = format12h(dayData.out);
+                    
+                    if (dayData.s && dayData.s !== 'P') {
+                        row += `${dayData.s},${dayData.s},`;
+                    } else {
+                        row += `"${tIn}","${tOut}",`;
+                    }
                 }
-                // Monthly total summary line for this person
-                csv += `"${name}",TOTAL,,,,"${monthlyTotalHrs.toFixed(1)} Hours"\n\n`;
+                row += `"${monthlyTotalHrs.toFixed(1)}"\n`;
+                csv += row;
             });
 
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
-            link.download = `Attendance_Report_${monText}_${yr}.csv`;
+            link.download = `Horizontal_Attendance_${monText}_${yr}.csv`;
             link.click();
         }
     </script>

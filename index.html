@@ -59,7 +59,7 @@
         <div class="btn-group">
             <button class="btn btn-p" onclick="addEmp()">➕ Add Staff</button>
             <button class="btn btn-err" onclick="remEmp()">➖ Remove</button>
-            <button class="btn btn-ok" onclick="toCSV()">📊 Export CSV</button>
+            <button class="btn btn-ok" onclick="toCSV()">📊 Export Full Report</button>
             <button class="btn btn-warn" onclick="window.print()">🖨️ Print</button>
             <button class="btn btn-dark" onclick="setPop()">⚙️ Settings</button>
             <button class="btn btn-err" onclick="nuke()">🗑️ Reset</button>
@@ -101,7 +101,6 @@
     </div>
 
     <script>
-        // Your Firebase Configuration Applied
         const firebaseConfig = {
             apiKey: "AIzaSyASeV6Zj4n7xxv2lGpyHIWU5C2eAtzkerY",
             authDomain: "futuredesignz-d763a.firebaseapp.com",
@@ -112,7 +111,6 @@
             appId: "1:741011047678:web:71f6cc3913ef554e5551af"
         };
 
-        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
@@ -147,16 +145,9 @@
                 m.value = new Date().getMonth(); y.value = new Date().getFullYear();
             }
             
-            // Sync Staff List
             db.ref('staffList').on('value', (snap) => {
                 const cloudStaff = snap.val();
-                if(cloudStaff) {
-                    staff = cloudStaff;
-                } else {
-                    // Default list if cloud is empty
-                    staff = ['Shehroz Sab', 'Uzair Sab', 'Ehsan', 'Waseem Sab', 'Faran Miss', 'Zunaira Miss', 'Sameer', 'Kabeer', 'Adnan Mughal', 'Waris Ali', 'Faroq Sab', 'Haroon Sab', 'Ahmad Cleaner', 'Ameer Hamza', 'Khalil Office boy'];
-                    db.ref('staffList').set(staff);
-                }
+                if(cloudStaff) { staff = cloudStaff; }
                 initSync();
             });
         }
@@ -221,7 +212,6 @@
             if(i > -1 && confirm(`Delete ${n}?`)) {
                 staff.splice(i, 1);
                 db.ref('staffList').set(staff);
-                db.ref(`attendance/${document.getElementById('ySel').value}/${document.getElementById('mSel').value}/${i}`).remove();
             }
         }
 
@@ -243,18 +233,46 @@
             });
         }
 
-        function calc(s, e) { if(!s || !e) return "0"; let h = (new Date(`2000-01-01T${e}`) - new Date(`2000-01-01T${s}`)) / 3600000; return h < 0 ? (h + 24).toFixed(1) : h.toFixed(1); }
+        function calc(s, e) { if(!s || !e) return "0.0"; let h = (new Date(`2000-01-01T${e}`) - new Date(`2000-01-01T${s}`)) / 3600000; return h < 0 ? (h + 24).toFixed(1) : h.toFixed(1); }
         function getCol(v) { return {'P':'#d4edda','A':'#f8d7da','L':'#fff3cd','S':'#e1f5fe'}[v] || 'white'; }
         function setPop() { const m = document.getElementById('settingsModal'); m.style.display = (m.style.display === 'block' ? 'none' : 'block'); }
         function updKey() { const v = document.getElementById('newKey').value; if(v){ localStorage.setItem('_fd_sub_v4', btoa(v)); alert("Saved"); setPop(); }}
         function nuke() { if(isAdm && confirm("Wipe current month data?")) { db.ref(`attendance/${document.getElementById('ySel').value}/${document.getElementById('mSel').value}`).remove(); }}
         
+        // --- NEW PROFESSIONAL EXPORT SYSTEM ---
         function toCSV() {
-            let csv = "Name,P,A,L,S,Hours\n";
-            document.querySelectorAll('#sRows tr').forEach(r => {
-                csv += Array.from(r.querySelectorAll('td')).map(t => `"${t.innerText}"`).join(",") + "\n";
+            const mSel = document.getElementById('mSel');
+            const monText = mSel.options[mSel.selectedIndex].text;
+            const yr = document.getElementById('ySel').value;
+            const daysCount = new Date(yr, parseInt(mSel.value) + 1, 0).getDate();
+            
+            let csv = "FUTURE DESIGNZ - ATTENDANCE REPORT\n";
+            csv += `Month: ${monText} ${yr}\n\n`;
+            
+            // CSV Columns Header
+            csv += "Staff Name,Date,Status,Time In,Time Out,Daily Hours\n";
+
+            staff.forEach((name, sIdx) => {
+                const staffData = currentMonthData[sIdx] || [];
+                let monthlyTotalHrs = 0;
+
+                for (let d = 0; d < daysCount; d++) {
+                    const dayData = staffData[d] || { s: "-", in: "-", out: "-" };
+                    const hrs = calc(dayData.in, dayData.out);
+                    monthlyTotalHrs += parseFloat(hrs);
+
+                    // Har din ki row
+                    csv += `"${name}","Day ${d + 1}","${dayData.s || "-"}","${dayData.in || "-"}","${dayData.out || "-"}","${hrs}"\n`;
+                }
+                // Monthly total summary line for this person
+                csv += `"${name}",TOTAL,,,,"${monthlyTotalHrs.toFixed(1)} Hours"\n\n`;
             });
-            const l = document.createElement("a"); l.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'})); l.download = "Attendance_Summary.csv"; l.click();
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = `Attendance_Report_${monText}_${yr}.csv`;
+            link.click();
         }
     </script>
 </body>
